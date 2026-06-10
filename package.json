@@ -1,0 +1,11 @@
+{
+  "name": "gstack-validation-companion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-skills.mjs",
+    "check": "node scripts/generate-skills.mjs --check",
+    "test": "node --test"
+  }
+}

@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+RUNTIME="$HOME/.gstack-validation-companion"
+CLAUDE_SKILLS="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
+CODEX_SKILLS="${CODEX_HOME:-$HOME/.codex}/skills"
+SKILLS="validation-plan customer-reps validation-review distribution-loop"
+
+uninstall() {
+  for skills_dir in "$CLAUDE_SKILLS" "$CODEX_SKILLS"; do
+    for skill in $SKILLS; do
+      target="$skills_dir/$skill"
+      if [ -L "$target" ]; then
+        case "$(readlink "$target")" in
+          "$ROOT"/* | "$RUNTIME"/*)
+            rm "$target"
+            echo "Removed $target"
+            ;;
+          *)
+            echo "Skipping $target: links elsewhere" >&2
+            ;;
+        esac
+      elif [ -e "$target" ]; then
+        echo "Skipping $target: not a symlink" >&2
+      fi
+    done
+  done
+  if [ -L "$RUNTIME" ] && [ "$(readlink "$RUNTIME")" = "$ROOT" ]; then
+    rm "$RUNTIME"
+    echo "Removed $RUNTIME"
+  elif [ -e "$RUNTIME" ]; then
+    echo "Skipping $RUNTIME: does not link to this checkout" >&2
+  fi
+  echo "GStack Validation Companion uninstalled."
+  echo "Validation state was kept under ${GSTACK_HOME:-$HOME/.gstack}/projects/*/validation; delete it manually if you want it gone."
+}
+
+if [ "${1:-}" = "--uninstall" ]; then
+  uninstall
+  exit 0
+elif [ -n "${1:-}" ]; then
+  echo "Usage: ./install [--uninstall]" >&2
+  exit 1
+fi
+
+is_gstack_root() {
+  candidate="$1"
+  [ -d "$candidate" ] &&
+    [ -f "$candidate/VERSION" ] &&
+    [ -f "$candidate/SKILL.md" ] &&
+    [ -x "$candidate/bin/gstack-config" ] &&
+    [ -f "$candidate/office-hours/SKILL.md" ] &&
+    grep -Eq '^name:[[:space:]]+gstack[[:space:]]*$' "$candidate/SKILL.md" 2>/dev/null &&
+    grep -Eq '^name:[[:space:]]+office-hours[[:space:]]*$' "$candidate/office-hours/SKILL.md" 2>/dev/null &&
+    grep -q "(gstack)" "$candidate/office-hours/SKILL.md" 2>/dev/null
+}
+
+find_gstack_root() {
+  candidates="
+${GSTACK_ROOT:-}
+${GSTACK_HOME:-$HOME/.gstack}/repos/gstack
+$HOME/.gstack/repos/gstack
+$CLAUDE_SKILLS/gstack
+$CODEX_SKILLS/gstack
+$PWD/.agents/skills/gstack
+"
+
+  while IFS= read -r candidate; do
+    [ -n "$candidate" ] || continue
+    if is_gstack_root "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done <<EOF
+$candidates
+EOF
+  return 1
+}
+
+if ! DETECTED_GSTACK_ROOT="$(find_gstack_root)"; then
+  echo "Gstack is required but no valid installation was found." >&2
+  if [ -n "${GSTACK_ROOT:-}" ]; then
+    echo "GSTACK_ROOT was checked but is not a valid gstack root: $GSTACK_ROOT" >&2
+  fi
+  echo "Please install it from https://github.com/garrytan/gstack, then rerun ./install." >&2
+  echo "A valid installation contains gstack's root skill, VERSION, executable bin/gstack-config, and office-hours skill." >&2
+  exit 1
+fi
+
+node "$ROOT/scripts/generate-skills.mjs"
+mkdir -p "$HOME"
+
+for dependency in "$CLAUDE_SKILLS/buyable" "$CODEX_SKILLS/buyable"; do
+  if [ -e "$dependency" ]; then
+    BUYABLE_FOUND=1
+    break
+  fi
+done
+[ "${BUYABLE_FOUND:-0}" -eq 1 ] || echo "Warning: buyable was not found; /validation-plan can still choose conversation-based experiments." >&2
+
+if [ -L "$RUNTIME" ]; then
+  CURRENT="$(readlink "$RUNTIME")"
+  if [ "$CURRENT" != "$ROOT" ]; then
+    echo "Refusing to replace $RUNTIME -> $CURRENT" >&2
+    exit 1
+  fi
+elif [ -e "$RUNTIME" ]; then
+  echo "Refusing to replace existing non-symlink: $RUNTIME" >&2
+  exit 1
+else
+  ln -s "$ROOT" "$RUNTIME"
+fi
+
+for skills_dir in "$CLAUDE_SKILLS" "$CODEX_SKILLS"; do
+  mkdir -p "$skills_dir"
+  for skill in $SKILLS; do
+    target="$skills_dir/$skill"
+    if [ -L "$target" ] || [ ! -e "$target" ]; then
+      ln -sfn "$ROOT/$skill" "$target"
+    else
+      echo "Skipping existing non-symlink: $target" >&2
+    fi
+  done
+done
+
+echo "GStack Validation Companion installed."
+echo "Using gstack: $DETECTED_GSTACK_ROOT"
+echo "Skills linked into: $CLAUDE_SKILLS and $CODEX_SKILLS"
+echo "Start with /office-hours, then run /validation-plan."
+echo "Routing rules: $ROOT/references/routing.md"
+echo "Uninstall with: ./install --uninstall"

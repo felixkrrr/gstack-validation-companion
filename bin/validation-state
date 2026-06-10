@@ -1,0 +1,268 @@
+#!/usr/bin/env node
+import {
+  appendFileSync,
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { basename, join } from "node:path";
+import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
+
+const COLLECTIONS = {
+  experiment: "experiments.jsonl",
+  evidence: "evidence.jsonl",
+  decision: "decisions.jsonl",
+  contact: "contacts.jsonl",
+};
+const REQUIRED = {
+  experiment: ["hypothesis", "audience", "method", "offer", "channel", "success_signal", "invalidation_signal", "status"],
+  evidence: ["experiment_id", "observation", "source_type"],
+  decision: ["experiment_id", "decision", "rationale", "next_action"],
+  contact: ["name", "relationship", "status"],
+};
+const VALUES = {
+  experiment: { status: ["planned", "active", "completed", "abandoned"], validity: ["valid", "partially-valid", "invalid"] },
+  decision: { decision: ["repeat", "change-audience", "change-problem", "change-offer", "change-channel", "advance", "pause", "kill"] },
+  contact: {
+    credibility: ["unknown", "credible", "mixed", "not-credible"],
+    icp_fit: ["high", "medium", "low"],
+    domain_expertise: ["high", "medium", "low"],
+    candor: ["high", "medium", "low", "unknown"],
+  },
+};
+const PRIVATE_KEY = /(email|phone|whatsapp|address|transcript|raw_quote|contact_details)/i;
+
+function die(message) {
+  console.error(`validation-state: ${message}`);
+  process.exit(1);
+}
+
+function git(...args) {
+  try {
+    return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return "";
+  }
+}
+
+function slug() {
+  if (process.env.VALIDATION_PROJECT_SLUG) return sanitize(process.env.VALIDATION_PROJECT_SLUG);
+  const url = git("remote", "get-url", "origin");
+  const match = url.replace(/\.git$/, "").match(/[:/]([^/]+\/[^/]+)$/);
+  if (match) return sanitize(match[1].replace("/", "-"));
+  const toplevel = git("rev-parse", "--show-toplevel");
+  if (toplevel) return sanitize(basename(toplevel)) || "unknown";
+  return sanitize(basename(process.cwd())) || "unknown";
+}
+
+function sanitize(value) {
+  return String(value).replace(/[^a-zA-Z0-9._-]/g, "");
+}
+
+const projectSlug = slug();
+const home = process.env.GSTACK_HOME || join(process.env.HOME, ".gstack");
+const stateDir = join(home, "projects", projectSlug, "validation");
+
+function ensureState() {
+  mkdirSync(stateDir, { recursive: true, mode: 0o700 });
+  chmodSync(stateDir, 0o700);
+  for (const file of Object.values(COLLECTIONS)) {
+    const path = join(stateDir, file);
+    if (!existsSync(path)) writeFileSync(path, "", { mode: 0o600 });
+    chmodSync(path, 0o600);
+  }
+  const thesis = join(stateDir, "thesis.md");
+  if (!existsSync(thesis)) {
+    writeFileSync(thesis, `# Validation Thesis\n\nProject: ${projectSlug}\n\n## Founder-Market Fit\n\n## Audience and Market Potential\n\n## Important Problem\n\n## Offer\n\n## Riskiest Assumption\n`, { mode: 0o600 });
+  }
+  const distribution = join(stateDir, "distribution.md");
+  if (!existsSync(distribution)) {
+    writeFileSync(distribution, `# Distribution Loop\n\nAutomation level: 0\n\n## Proven Audience\n\n## Proven Message\n\n## Proven Channels\n\n## Cadence and Review\n\n## Problem-Posting\n\nOpt-in: no\n`, { mode: 0o600 });
+  }
+}
+
+function readRows(kind) {
+  ensureState();
+  const file = COLLECTIONS[kind];
+  const lines = readFileSync(join(stateDir, file), "utf8").split("\n");
+  const rows = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    try {
+      rows.push(JSON.parse(lines[i]));
+    } catch {
+      die(`corrupted record at ${file}:${i + 1}; repair or remove that line in ${join(stateDir, file)}`);
+    }
+  }
+  return rows;
+}
+
+function parseInput(args) {
+  const index = args.indexOf("--json");
+  if (index < 0 || !args[index + 1]) die("command requires --json '<object>'");
+  try {
+    const value = JSON.parse(args[index + 1]);
+    if (!value || Array.isArray(value) || typeof value !== "object") throw new Error();
+    return value;
+  } catch {
+    die("invalid JSON object");
+  }
+}
+
+function assertFields(kind, row) {
+  for (const field of REQUIRED[kind]) {
+    if (row[field] === undefined || row[field] === "") die(`${kind}.${field} is required`);
+  }
+  for (const [field, allowed] of Object.entries(VALUES[kind] || {})) {
+    if (row[field] !== undefined && !allowed.includes(row[field])) {
+      die(`${kind}.${field} must be one of: ${allowed.join(", ")}`);
+    }
+  }
+  if (kind === "experiment" && row.rep_number !== undefined && (!Number.isInteger(row.rep_number) || row.rep_number < 1)) {
+    die("experiment.rep_number must be a positive integer");
+  }
+  if (kind === "experiment" || kind === "decision") {
+    for (const key of Object.keys(row)) {
+      if (PRIVATE_KEY.test(key)) die(`${kind} cannot contain private field '${key}'; store raw material in evidence or contacts`);
+    }
+  }
+}
+
+function findExperiment(id) {
+  return readRows("experiment").filter((row) => row.id === id).at(-1);
+}
+
+function findContact(id) {
+  return readRows("contact").filter((row) => row.id === id).at(-1);
+}
+
+function append(kind, row, args) {
+  if (!COLLECTIONS[kind]) die(`unknown collection '${kind}'`);
+  assertFields(kind, row);
+  if (kind === "evidence" || kind === "decision") {
+    if (!findExperiment(row.experiment_id)) die(`unknown experiment_id '${row.experiment_id}'`);
+  }
+  if (kind === "decision" && row.decision === "kill") {
+    const experiment = findExperiment(row.experiment_id);
+    const related = latestById(readRows("experiment")).filter((item) => item.hypothesis === experiment.hypothesis);
+    const enoughReps = (experiment.rep_number || 1) >= 2 || related.length >= 2;
+    const forced = args.includes("--force-with-rationale") && row.rationale.length >= 20;
+    if ((!enoughReps || experiment.validity !== "valid") && !forced) {
+      die("kill requires a valid experiment and at least one adjusted repetition; use --force-with-rationale only for an explicit exception");
+    }
+  }
+  if (kind === "decision" && row.decision === "advance" && findExperiment(row.experiment_id).validity !== "valid") {
+    die("advance requires a valid experiment");
+  }
+  const record = { ...row, id: row.id || randomUUID(), ts: new Date().toISOString(), project_slug: projectSlug };
+  appendFileSync(join(stateDir, COLLECTIONS[kind]), `${JSON.stringify(record)}\n`, { mode: 0o600 });
+  console.log(JSON.stringify(record));
+}
+
+function reviewExperiment(id, review) {
+  const existing = findExperiment(id);
+  if (!existing) die(`unknown experiment_id '${id}'`);
+  for (const field of ["validity", "validity_reason", "result", "next_action"]) {
+    if (review[field] === undefined || review[field] === "") die(`review.${field} is required`);
+  }
+  if (!["valid", "partially-valid", "invalid"].includes(review.validity)) {
+    die("review.validity must be valid, partially-valid, or invalid");
+  }
+  append("experiment", { ...existing, ...review, id: existing.id }, []);
+}
+
+function reviewContact(id, review) {
+  const existing = findContact(id);
+  if (!existing) die(`unknown contact_id '${id}'`);
+  for (const field of ["credibility", "credibility_reason", "icp_fit", "domain_expertise", "candor", "reengage", "next_question"]) {
+    if (review[field] === undefined || review[field] === "") die(`contact_review.${field} is required`);
+  }
+  if (typeof review.reengage !== "boolean") die("contact_review.reengage must be true or false");
+  append("contact", { ...existing, ...review, id: existing.id }, []);
+}
+
+function latestById(rows) {
+  return [...new Map(rows.map((row) => [row.id, row])).values()];
+}
+
+function signalCounts() {
+  const experiments = latestById(readRows("experiment"));
+  return {
+    valid: experiments.filter((x) => x.validity === "valid").length,
+    strong: experiments.filter((x) => x.validity === "valid" && x.result === "strong-signal").length,
+  };
+}
+
+function setLevel(level, rationale) {
+  if (![0, 1, 2, 3].includes(level)) die("level must be 0, 1, 2, or 3");
+  const counts = signalCounts();
+  if (level >= 1 && counts.valid < 1) die("level 1 requires at least one valid experiment");
+  if (level >= 2 && counts.strong < 2) die("level 2 requires repeated strong signal from valid experiments");
+  if (level >= 3 && counts.strong < 3) die("level 3 requires at least three valid strong-signal experiments");
+  if (!rationale || rationale.length < 20) die("set-level requires --rationale with at least 20 characters");
+  const path = join(stateDir, "distribution.md");
+  const current = readFileSync(path, "utf8");
+  const updated = current.replace(/Automation level: \d/, `Automation level: ${level}`);
+  writeFileSync(path, `${updated.trim()}\n\n## Level Change ${new Date().toISOString()}\n\n${rationale}\n`, { mode: 0o600 });
+  console.log(`Automation level set to ${level}`);
+}
+
+function summary(sanitized) {
+  const experiments = readRows("experiment");
+  const decisions = readRows("decision");
+  const evidence = readRows("evidence");
+  const contacts = latestById(readRows("contact"));
+  const latestDecision = decisions.at(-1);
+  const result = {
+    project_slug: projectSlug,
+    experiments: experiments.length,
+    valid_experiments: experiments.filter((x) => x.validity === "valid").length,
+    strong_signal_experiments: experiments.filter((x) => x.validity === "valid" && x.result === "strong-signal").length,
+    evidence_records: evidence.length,
+    contacts: contacts.length,
+    credible_contacts: contacts.filter((x) => x.credibility === "credible").length,
+    latest_decision: latestDecision ? (
+      sanitized
+        ? { decision: latestDecision.decision, sanitized_summary: latestDecision.sanitized_summary || null }
+        : {
+            decision: latestDecision.decision,
+            rationale: latestDecision.rationale,
+            next_action: latestDecision.next_action,
+          }
+    ) : null,
+  };
+  if (!sanitized) result.state_dir = stateDir;
+  console.log(JSON.stringify(result, null, 2));
+}
+
+function help() {
+  console.log(`Usage:
+  validation-state init
+  validation-state append <experiment|evidence|decision|contact> --json '<object>' [--force-with-rationale]
+  validation-state review <experiment-id> --json '<validity assessment>'
+  validation-state review-contact <contact-id> --json '<credibility assessment>'
+  validation-state list <experiment|evidence|decision|contact>
+  validation-state summary [--sanitized]
+  validation-state set-level <0|1|2|3> --rationale '<reason>'
+
+State: ${stateDir}`);
+}
+
+const [command, ...args] = process.argv.slice(2);
+ensureState();
+if (command === "init") console.log(stateDir);
+else if (command === "append") append(args[0], parseInput(args.slice(1)), args);
+else if (command === "review") reviewExperiment(args[0], parseInput(args.slice(1)));
+else if (command === "review-contact") reviewContact(args[0], parseInput(args.slice(1)));
+else if (command === "list") {
+  if (!COLLECTIONS[args[0]]) die(`unknown collection '${args[0] || ""}'`);
+  console.log(JSON.stringify(readRows(args[0]), null, 2));
+}
+else if (command === "summary") summary(args.includes("--sanitized"));
+else if (command === "set-level") {
+  const index = args.indexOf("--rationale");
+  setLevel(Number(args[0]), index >= 0 ? args[index + 1] : "");
+} else help();

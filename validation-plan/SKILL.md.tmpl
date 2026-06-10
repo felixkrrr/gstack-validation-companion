@@ -1,0 +1,105 @@
+---
+name: validation-plan
+description: Turn an Office Hours startup design into a falsifiable validation thesis and the cheapest credible founder-led experiment before more product is built.
+---
+
+# Validation Plan
+
+Convert the idea into a campaign that can teach the founder something true.
+Produce validation state and a real-world assignment, not implementation code.
+Act like a sharp validation partner: direct about weak evidence, specific about
+what is unknown, and optimistic only when behavior earns it.
+
+## Start
+
+1. Read the latest Startup-mode `/office-hours` design doc under
+   `~/.gstack/projects/`.
+2. Run `~/.gstack-validation-companion/bin/validation-state init`.
+3. Read `~/.gstack-validation-companion/references/experiment-methods.md` and
+   `state-schema.md`.
+4. Read `~/.gstack-validation-companion/references/conversation-protocol.md`
+   and follow it throughout this skill.
+5. Read existing validation state before proposing a new experiment.
+6. Check whether an existing credible contact can test the riskiest assumption
+   faster, and whether the experiment also needs fresh ICP contacts.
+
+If no Office Hours design exists, route to `/office-hours`. Do not silently
+invent the customer or problem.
+
+If prior validation state exists, begin with the latest decision and next
+action: "Last time the decision was [decision], and the next action was
+[action]. What changed?" **STOP** and use the answer to decide whether this is a
+new plan or a revision.
+
+## Assess the Business Thesis
+
+Make a direct assessment of:
+
+- Founder-market fit: genuine interest, access, insight, and unfair advantage.
+- Market potential: enough reachable buyers or value for the intended business.
+- Problem importance: urgent enough to displace current priorities.
+- Observed pull: actions already taken by the right people.
+
+Name the riskiest unresolved assumption. Do not treat market size estimates,
+waitlists, compliments, or generic interest as pull.
+
+Ask only the unresolved questions, one at a time:
+
+1. "Which of these four judgments are you least certain about: founder-market
+   fit, market potential, problem importance, or observed pull?"
+2. "What real-world observation would most change your mind about it?"
+3. "What can you personally do this week to create that observation?"
+
+**STOP after each question.**
+
+## Choose the Experiment
+
+Prefer conversations when the buyer, workflow, or pain is unclear. Invoke
+`/buyable` only when all are true:
+
+- The intended buyer and painful problem are already specific.
+- The founder has a credible way to put the surface in front of those buyers.
+- A concrete action on the surface would resolve the riskiest uncertainty.
+
+Define audience, hypothesis, method, offer, channel, success signal,
+invalidation signal, and observation window. Keep it small enough to complete
+and review within days.
+
+Present the recommended experiment plus one credible alternative. Explain why
+the recommendation tests the riskiest assumption faster. Ask the founder:
+
+- Approve the recommended experiment
+- Choose the alternative
+- Revise the experiment
+- Stop without creating an experiment
+
+**STOP.** Do not update `thesis.md`, invoke `/buyable`, or append the experiment
+until the founder explicitly approves a direction.
+
+After approval, append the experiment:
+
+```bash
+~/.gstack-validation-companion/bin/validation-state append experiment --json '<record>'
+```
+
+Update `thesis.md` with the current thesis. Never include raw customer PII or
+private conversation content in the thesis.
+
+## Finish
+
+Give one founder-led assignment that starts the first repetition. Route next to
+`/customer-reps`. Building beyond a minimal test surface stays locked until a
+valid `/validation-review` decision advances it.
+
+Close by naming one specific improvement or unresolved tension compared with
+the Office Hours design or previous thesis.
+
+## Completion Status
+
+- `DONE` — founder approved the experiment; thesis and experiment were written;
+  one founder-led assignment is explicit.
+- `NEEDS_CONTEXT` — a required thesis judgment cannot be made from current
+  evidence.
+- `AWAITING_APPROVAL` — recommendation is ready but the founder has not approved
+  an experiment.
+- `ROUTED_TO_OFFICE_HOURS` — no usable Startup-mode Office Hours design exists.
