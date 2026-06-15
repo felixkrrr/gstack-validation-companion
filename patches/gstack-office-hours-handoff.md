@@ -3,7 +3,7 @@
 GStack Validation Companion works without modifying gstack, but the best default
 route changes Startup-mode Office Hours:
 
-- Recommend `/validation-plan` when installed.
+- Recommend `/experiment-plan` when installed.
 - Do not route startup ideas directly into implementation planning.
 - Keep the existing planning recommendations for Builder mode.
 

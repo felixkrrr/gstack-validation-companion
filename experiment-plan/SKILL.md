@@ -1,33 +1,33 @@
 ---
-name: validation-plan
-description: Turn an Office Hours startup design into a falsifiable validation thesis and the cheapest credible founder-led experiment before more product is built.
+name: experiment-plan
+description: Turn an Office Hours startup design into a falsifiable experiment thesis and the cheapest credible founder-led experiment before more product is built.
 ---
 <!-- AUTO-GENERATED from SKILL.md.tmpl; edit the template -->
 
-# Validation Plan
+# Experiment Plan
 
 Convert the idea into a campaign that can teach the founder something true.
-Produce validation state and a real-world assignment, not implementation code.
-Act like a sharp validation partner: direct about weak evidence, specific about
+Produce experiment state and a real-world assignment, not implementation code.
+Act like a sharp experiment partner: direct about weak evidence, specific about
 what is unknown, and optimistic only when behavior earns it.
 
 ## Start
 
 1. Read the latest Startup-mode `/office-hours` design doc under
    `~/.gstack/projects/`.
-2. Run `~/.gstack-validation-companion/bin/validation-state init`.
+2. Run `~/.gstack-validation-companion/bin/experiment-state init`.
 3. Read `~/.gstack-validation-companion/references/experiment-methods.md` and
    `state-schema.md`.
 4. Read `~/.gstack-validation-companion/references/conversation-protocol.md`
    and follow it throughout this skill.
-5. Read existing validation state before proposing a new experiment.
+5. Read existing experiment state before proposing a new experiment.
 6. Check whether an existing credible contact can test the riskiest assumption
    faster, and whether the experiment also needs fresh ICP contacts.
 
 If no Office Hours design exists, route to `/office-hours`. Do not silently
 invent the customer or problem.
 
-If prior validation state exists, begin with the latest decision and next
+If prior experiment state exists, begin with the latest decision and next
 action: "Last time the decision was [decision], and the next action was
 [action]. What changed?" **STOP** and use the answer to decide whether this is a
 new plan or a revision.
@@ -80,7 +80,7 @@ until the founder explicitly approves a direction.
 After approval, append the experiment:
 
 ```bash
-~/.gstack-validation-companion/bin/validation-state append experiment --json '<record>'
+~/.gstack-validation-companion/bin/experiment-state append experiment --json '<record>'
 ```
 
 Update `thesis.md` with the current thesis. Never include raw customer PII or
@@ -90,7 +90,7 @@ private conversation content in the thesis.
 
 Give one founder-led assignment that starts the first repetition. Route next to
 `/customer-reps`. Building beyond a minimal test surface stays locked until a
-valid `/validation-review` decision advances it.
+valid `/experiment-review` decision advances it.
 
 Close by naming one specific improvement or unresolved tension compared with
 the Office Hours design or previous thesis.

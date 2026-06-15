@@ -8,7 +8,7 @@ Use this protocol in every companion skill.
 - Use AskUserQuestion when available and the answer is a real choice. Plain
   prose is fine for open-ended evidence questions.
 - **STOP after each question.** Wait for the founder's response before moving.
-- Smart-skip anything already answered by the Office Hours design, validation
+- Smart-skip anything already answered by the Office Hours design, experiment
   state, or the founder's current message.
 - Push vague answers once, then push again when the answer remains polished or
   hypothetical. Do not accept categories where a named person, behavior, or

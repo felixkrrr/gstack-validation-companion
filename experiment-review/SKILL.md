@@ -1,9 +1,10 @@
 ---
-name: validation-review
-description: Judge whether a validation experiment was exercised well before interpreting evidence, then recommend repeat, adjust, advance, pause, or kill.
+name: experiment-review
+description: Judge whether an experiment was exercised well before interpreting evidence, then recommend repeat, adjust, advance, pause, or kill.
 ---
+<!-- AUTO-GENERATED from SKILL.md.tmpl; edit the template -->
 
-# Validation Review
+# Experiment Review
 
 Interpret evidence only after judging whether the experiment deserved to teach
 us anything.
@@ -100,9 +101,9 @@ credibility assessments without that approval either. After approval, write
 them append-only:
 
 ```bash
-~/.gstack-validation-companion/bin/validation-state review <experiment-id> --json '<validity assessment>'
-~/.gstack-validation-companion/bin/validation-state review-contact <contact-id> --json '<credibility assessment>'
-~/.gstack-validation-companion/bin/validation-state append decision --json '<decision>'
+~/.gstack-validation-companion/bin/experiment-state review <experiment-id> --json '<validity assessment>'
+~/.gstack-validation-companion/bin/experiment-state review-contact <contact-id> --json '<credibility assessment>'
+~/.gstack-validation-companion/bin/experiment-state append decision --json '<decision>'
 ```
 
 Strong valid signal routes to `/distribution-loop`. Adjustments route back to
@@ -115,9 +116,9 @@ what remained ambiguous, and what the founder now knows that they did not know
 before.
 
 Only log a sanitized durable meta-learning when it would save time in future
-sessions. Use `validation-state summary --sanitized`; never include raw evidence
+sessions. Use `experiment-state summary --sanitized`; never include raw evidence
 or contacts. If gbrain is installed and the user has enabled trusted writes,
-the sanitized thesis and decision summary may be saved as a validation decision
+the sanitized thesis and decision summary may be saved as an experiment decision
 page. Never save `evidence.jsonl`, `contacts.jsonl`, transcripts, or private
 conversation content.
 

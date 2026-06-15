@@ -7,14 +7,14 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const root = join(fileURLToPath(new URL(".", import.meta.url)), "..");
-const cli = join(root, "bin", "validation-state");
+const cli = join(root, "bin", "experiment-state");
 
 function harness() {
   const dir = mkdtempSync(join(tmpdir(), "gstack-validation-companion-"));
   const env = {
     ...process.env,
     GSTACK_HOME: join(dir, ".gstack"),
-    VALIDATION_PROJECT_SLUG: "test-project",
+    EXPERIMENT_PROJECT_SLUG: "test-project",
     // Isolate from any gstack-slug installed on the host machine.
     GSTACK_ROOT: join(dir, "no-gstack-root"),
     CLAUDE_CONFIG_DIR: join(dir, ".claude"),
@@ -42,7 +42,7 @@ const experiment = (overrides = {}) => ({
 test("initializes private project-scoped state", () => {
   const { env, run } = harness();
   const path = run("init").trim();
-  assert.equal(path, join(env.GSTACK_HOME, "projects", "test-project", "validation"));
+  assert.equal(path, join(env.GSTACK_HOME, "projects", "test-project", "experiments"));
   assert.match(readFileSync(join(path, "thesis.md"), "utf8"), /Founder-Market Fit/);
   assert.match(readFileSync(join(path, "distribution.md"), "utf8"), /Automation level: 0/);
 });
@@ -78,7 +78,7 @@ test("review appends a merged validity assessment", () => {
   assert.equal(JSON.parse(run("list", "experiment")).length, 2);
 });
 
-test("contact review builds an append-only trusted validation circle", () => {
+test("contact review builds an append-only trusted circle", () => {
   const { run, fail } = harness();
   const created = JSON.parse(run("append", "contact", "--json", JSON.stringify({
     name: "Alice Example",
@@ -222,12 +222,12 @@ test("slug defers to gstack-slug when available, for alignment with gstack's pro
   chmodSync(slugScript, 0o755);
 
   const slugEnv = { ...env, CLAUDE_CONFIG_DIR: join(dir, ".claude") };
-  delete slugEnv.VALIDATION_PROJECT_SLUG;
+  delete slugEnv.EXPERIMENT_PROJECT_SLUG;
   const path = execFileSync("node", [cli, "init"], { env: slugEnv, encoding: "utf8" }).trim();
-  assert.match(path, /\/projects\/from-gstack-slug\/validation$/);
+  assert.match(path, /\/projects\/from-gstack-slug\/experiments$/);
 });
 
-test("VALIDATION_PROJECT_SLUG overrides gstack-slug", () => {
+test("EXPERIMENT_PROJECT_SLUG overrides gstack-slug", () => {
   const { dir, env } = harness();
   const gstackBin = join(dir, ".claude", "skills", "gstack", "bin");
   mkdirSync(gstackBin, { recursive: true });
@@ -239,7 +239,7 @@ test("VALIDATION_PROJECT_SLUG overrides gstack-slug", () => {
     env: { ...env, CLAUDE_CONFIG_DIR: join(dir, ".claude") },
     encoding: "utf8",
   }).trim();
-  assert.match(path, new RegExp(`/projects/${env.VALIDATION_PROJECT_SLUG}/validation$`));
+  assert.match(path, new RegExp(`/projects/${env.EXPERIMENT_PROJECT_SLUG}/experiments$`));
 });
 
 test("slug stays stable across subdirectories of a remote-less repository", () => {
@@ -249,7 +249,7 @@ test("slug stays stable across subdirectories of a remote-less repository", () =
   mkdirSync(nested, { recursive: true });
   execFileSync("git", ["init", "--quiet", repo]);
   const slugEnv = { ...env };
-  delete slugEnv.VALIDATION_PROJECT_SLUG;
+  delete slugEnv.EXPERIMENT_PROJECT_SLUG;
   const initAt = (cwd) => execFileSync("node", [cli, "init"], { cwd, env: slugEnv, encoding: "utf8" }).trim();
   const fromRoot = initAt(repo);
   const fromNested = initAt(nested);

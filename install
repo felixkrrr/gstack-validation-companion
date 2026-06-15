@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 RUNTIME="$HOME/.gstack-validation-companion"
 CLAUDE_SKILLS="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
 CODEX_SKILLS="${CODEX_HOME:-$HOME/.codex}/skills"
-SKILLS="validation-plan customer-reps validation-review distribution-loop"
+SKILLS="experiment-plan customer-reps experiment-review distribution-loop"
 
 uninstall() {
   for skills_dir in "$CLAUDE_SKILLS" "$CODEX_SKILLS"; do
@@ -33,7 +33,7 @@ uninstall() {
     echo "Skipping $RUNTIME: does not link to this checkout" >&2
   fi
   echo "GStack Validation Companion uninstalled."
-  echo "Validation state was kept under ${GSTACK_HOME:-$HOME/.gstack}/projects/*/validation; delete it manually if you want it gone."
+  echo "Experiment state was kept under ${GSTACK_HOME:-$HOME/.gstack}/projects/*/experiments; delete it manually if you want it gone."
 }
 
 if [ "${1:-}" = "--uninstall" ]; then
@@ -97,7 +97,7 @@ for dependency in "$CLAUDE_SKILLS/buyable" "$CODEX_SKILLS/buyable"; do
     break
   fi
 done
-[ "${BUYABLE_FOUND:-0}" -eq 1 ] || echo "Warning: buyable was not found; /validation-plan can still choose conversation-based experiments." >&2
+[ "${BUYABLE_FOUND:-0}" -eq 1 ] || echo "Warning: buyable was not found; /experiment-plan can still choose conversation-based experiments." >&2
 
 if [ -L "$RUNTIME" ]; then
   CURRENT="$(readlink "$RUNTIME")"
@@ -127,6 +127,6 @@ done
 echo "GStack Validation Companion installed."
 echo "Using gstack: $DETECTED_GSTACK_ROOT"
 echo "Skills linked into: $CLAUDE_SKILLS and $CODEX_SKILLS"
-echo "Start with /office-hours, then run /validation-plan."
+echo "Start with /office-hours, then run /experiment-plan."
 echo "Routing rules: $ROOT/references/routing.md"
 echo "Uninstall with: ./install --uninstall"

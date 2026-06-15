@@ -82,9 +82,9 @@ test("installer honors CLAUDE_CONFIG_DIR and CODEX_HOME and uninstall reverses i
   const env = { CLAUDE_CONFIG_DIR: claudeDir, CODEX_HOME: codexDir };
 
   // A pre-existing real skill directory must survive install and uninstall.
-  const userOwned = join(codexDir, "skills", "validation-plan");
+  const userOwned = join(codexDir, "skills", "experiment-plan");
   mkdirSync(userOwned, { recursive: true });
-  writeFileSync(join(userOwned, "SKILL.md"), "name: validation-plan\n");
+  writeFileSync(join(userOwned, "SKILL.md"), "name: experiment-plan\n");
 
   const installed = run(env);
   assert.equal(installed.status, 0, installed.stderr);
@@ -95,8 +95,8 @@ test("installer honors CLAUDE_CONFIG_DIR and CODEX_HOME and uninstall reverses i
   const removed = run(env, ["--uninstall"]);
   assert.equal(removed.status, 0, removed.stderr);
   assert.match(removed.stdout, /uninstalled/);
-  assert.match(removed.stdout, /Validation state was kept/);
-  for (const skill of ["validation-plan", "customer-reps", "validation-review", "distribution-loop"]) {
+  assert.match(removed.stdout, /Experiment state was kept/);
+  for (const skill of ["experiment-plan", "customer-reps", "experiment-review", "distribution-loop"]) {
     assert.ok(!existsSync(join(claudeDir, "skills", skill)), `${skill} still linked`);
   }
   assert.ok(!existsSync(join(home, ".gstack-validation-companion")));

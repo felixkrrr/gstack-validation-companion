@@ -1,6 +1,6 @@
 ---
 name: customer-reps
-description: Prepare and document one founder-led customer validation repetition using named people, human outreach, interviews, referrals, or community conversations.
+description: Prepare and document one founder-led customer experiment repetition using named people, human outreach, interviews, referrals, or community conversations.
 ---
 <!-- AUTO-GENERATED from SKILL.md.tmpl; edit the template -->
 
@@ -14,7 +14,7 @@ activity, polished messages, or broad prospect lists masquerade as progress.
 ## Start
 
 1. Read `thesis.md`, active experiments, evidence, and contacts from the
-   project's validation directory.
+   project's experiment directory.
 2. Read `~/.gstack-validation-companion/references/tactics.md` and
    `state-schema.md`.
 3. Read `~/.gstack-validation-companion/references/conversation-protocol.md`
@@ -100,13 +100,13 @@ After the founder reports what happened, separate:
   direct experience, challenges weak ideas, and would continue helping.
 
 Append raw observations to `evidence.jsonl` and minimal relationship state to
-`contacts.jsonl` using `validation-state`. Before recording a contact
+`contacts.jsonl` using `experiment-state`. Before recording a contact
 credibility assessment, present the assessment and ask the founder to approve,
 revise, or leave it unknown. **STOP.** After approval, append it with
-`validation-state review-contact`. Never copy contacts or raw evidence into
+`experiment-state review-contact`. Never copy contacts or raw evidence into
 generic learnings or gbrain.
 
-End by routing to `/validation-review` once a repetition or small batch has
+End by routing to `/experiment-review` once a repetition or small batch has
 enough evidence to assess.
 
 Close by reflecting one concrete behavior the founder observed or one way their
@@ -121,4 +121,4 @@ approach changed. Avoid generic encouragement.
 - `AWAITING_FOUNDER_ACTION` — the packet is ready, but the founder has not
   performed the rep.
 - `READY_FOR_REVIEW` — the completed rep has enough evidence for
-  `/validation-review`.
+  `/experiment-review`.

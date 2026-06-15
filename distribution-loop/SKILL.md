@@ -11,7 +11,7 @@ Be enthusiastic about proven pull and stubborn about unproven automation.
 
 ## Start
 
-Read validation state, especially valid experiments, decisions, and
+Read experiment state, especially valid experiments, decisions, and
 `distribution.md`. Read
 `~/.gstack-validation-companion/references/distribution-levels.md` and
 `tactics.md`. Read
@@ -19,7 +19,7 @@ Read validation state, especially valid experiments, decisions, and
 it throughout this skill.
 
 If no valid experiment produced meaningful pull, route back to
-`/customer-reps` or `/validation-review`. Do not automate an unproven pitch.
+`/customer-reps` or `/experiment-review`. Do not automate an unproven pitch.
 
 Open with the strongest prior signal and the latest decision: "The strongest
 signal so far was [signal], and the last decision was [decision]. Has that
@@ -35,7 +35,7 @@ Identify:
 - Sustainable founder cadence.
 - Feedback captured after every cycle.
 - Stop conditions and weekly review.
-- Which credible validation contacts remain a human feedback loop as the
+- Which credible contacts remain a human feedback loop as the
   distribution system scales.
 
 Problem-posting is opt-in. Posts must come from real observations, changed
@@ -58,7 +58,7 @@ Ask one at a time, smart-skipping known answers:
 - Level 2: agent manages lists and follow-ups; founder approves sends.
 - Level 3: agent operates proven campaigns within explicit caps and stops.
 
-Use `validation-state set-level` to change levels; the CLI enforces minimum
+Use `experiment-state set-level` to change levels; the CLI enforces minimum
 evidence. Higher levels may reuse installed lead-pipeline, outreach-pipeline,
 CRM, or social-growth skills. Those tools remain optional and do not justify a
 level increase by themselves.

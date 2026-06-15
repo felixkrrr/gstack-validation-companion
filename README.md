@@ -15,11 +15,11 @@ It does not replace gstack. It changes the default path after Startup-mode
 ```text
 /office-hours
     ↓
-/validation-plan
+/experiment-plan
     ↓
 /customer-reps
     ↓
-/validation-review
+/experiment-review
     ↙ repeat or adjust       ↘ strong signal
 /customer-reps               /distribution-loop
                                   ↓
@@ -36,7 +36,7 @@ The core rule is simple:
 The workflow is designed to answer whether an idea could become a good business,
 not merely whether somebody likes it.
 
-Every validation cycle examines four things:
+Every experiment cycle examines four things:
 
 - **Founder-market fit:** Do you genuinely care about, understand, and have
   access to this customer group?
@@ -62,11 +62,11 @@ The output is an approved design doc containing the problem, target user,
 narrowest wedge, current demand evidence, and a real-world assignment.
 
 With the optional Office Hours handoff patch applied, startup ideas route to
-`/validation-plan` instead of immediately entering engineering planning.
+`/experiment-plan` instead of immediately entering engineering planning.
 
-### 2. `/validation-plan` creates a falsifiable campaign
+### 2. `/experiment-plan` creates a falsifiable campaign
 
-`/validation-plan` reads the latest Office Hours design and turns it into:
+`/experiment-plan` reads the latest Office Hours design and turns it into:
 
 - a current business thesis
 - the riskiest unresolved assumption
@@ -86,7 +86,7 @@ only when:
 
 ### 3. `/customer-reps` helps the founder do real customer work
 
-`/customer-reps` prepares one serious validation repetition at a time.
+`/customer-reps` prepares one serious experiment repetition at a time.
 
 It starts with the founder's existing network before moving outward:
 
@@ -108,16 +108,16 @@ After each repetition, observations are recorded separately from
 interpretations. This prevents the founder or agent from turning one awkward
 conversation into a sweeping market conclusion.
 
-The workflow also builds a **trusted validation circle**: a small set of ICP
+The workflow also builds a **trusted circle**: a small set of ICP
 contacts who know the workflow deeply and are candid enough to say when an idea
 is bad, irrelevant, or low priority. After each rep, the founder assesses the
 contact's ICP fit, domain expertise, candor, and whether a changed hypothesis
 should be brought back to them. Credible returning contacts speed up iteration;
 fresh contacts are still included when testing whether the signal generalizes.
 
-### 4. `/validation-review` judges the experiment before the idea
+### 4. `/experiment-review` judges the experiment before the idea
 
-Before interpreting feedback, `/validation-review` asks whether the experiment
+Before interpreting feedback, `/experiment-review` asks whether the experiment
 was exercised well enough to deserve an interpretation.
 
 Each repetition is classified as:
@@ -182,13 +182,13 @@ Suppose you want to build an AI tool that writes weekly operations reports.
 1. `/office-hours` pushes "operations teams" into a specific first customer:
    operations leads at 20–100 person agencies who manually compile client
    delivery reports every Friday.
-2. `/validation-plan` decides the biggest uncertainty is whether the weekly
+2. `/experiment-plan` decides the biggest uncertainty is whether the weekly
    report is painful and important enough to change behavior. It chooses five
    founder-led conversations, not a product build.
 3. `/customer-reps` helps identify two people you already know, three warm
    introduction paths, a short message, and questions about their current
    Friday workflow.
-4. `/validation-review` finds that only two conversations reached the intended
+4. `/experiment-review` finds that only two conversations reached the intended
    role and the proposed offer was vague. The repetition is partially valid,
    so it recommends repeating with a concrete manual report service.
 5. The next repetition produces two pilot requests. The valid strong signal
@@ -199,10 +199,10 @@ Suppose you want to build an AI tool that writes weekly operations reports.
 
 ## Persistence And Privacy
 
-Validation state follows gstack's project-scoped storage convention:
+Experiment state follows gstack's project-scoped storage convention:
 
 ```text
-~/.gstack/projects/<slug>/validation/
+~/.gstack/projects/<slug>/experiments/
   thesis.md
   experiments.jsonl
   evidence.jsonl
@@ -232,32 +232,32 @@ gbrain, or cross-machine sync.
 Sanitized business-level conclusions can be exported explicitly:
 
 ```bash
-~/.gstack-validation-companion/bin/validation-state summary --sanitized
+~/.gstack-validation-companion/bin/experiment-state summary --sanitized
 ```
 
 ## Deterministic State CLI
 
-The skills use `validation-state` so important workflow rules are executable
+The skills use `experiment-state` so important workflow rules are executable
 rather than relying only on prompt instructions.
 
 ```bash
 # Initialize state for the current project
-~/.gstack-validation-companion/bin/validation-state init
+~/.gstack-validation-companion/bin/experiment-state init
 
 # Inspect current records
-~/.gstack-validation-companion/bin/validation-state list experiment
-~/.gstack-validation-companion/bin/validation-state summary
+~/.gstack-validation-companion/bin/experiment-state list experiment
+~/.gstack-validation-companion/bin/experiment-state summary
 
 # Review an experiment append-only
-~/.gstack-validation-companion/bin/validation-state review <experiment-id> \
+~/.gstack-validation-companion/bin/experiment-state review <experiment-id> \
   --json '{"validity":"valid","validity_reason":"...","result":"strong-signal","next_action":"..."}'
 
-# Review whether a contact belongs in the trusted validation circle
-~/.gstack-validation-companion/bin/validation-state review-contact <contact-id> \
+# Review whether a contact belongs in the trusted circle
+~/.gstack-validation-companion/bin/experiment-state review-contact <contact-id> \
   --json '{"credibility":"credible","credibility_reason":"Direct operator who challenged the premise","icp_fit":"high","domain_expertise":"high","candor":"high","reengage":true,"next_question":"Does the revised manual offer solve the priority issue?"}'
 
 # Increase automation after sufficient evidence
-~/.gstack-validation-companion/bin/validation-state set-level 1 \
+~/.gstack-validation-companion/bin/experiment-state set-level 1 \
   --rationale "One valid founder-led repetition supports agent preparation."
 ```
 
@@ -309,7 +309,7 @@ Restart your coding agent after installation, then start with:
 After Startup-mode Office Hours approves the design, run:
 
 ```text
-/validation-plan
+/experiment-plan
 ```
 
 To remove the companion pack:
@@ -318,8 +318,8 @@ To remove the companion pack:
 ./install --uninstall
 ```
 
-Uninstalling removes only symlinks created by this installer. Validation state
-under `~/.gstack/projects/*/validation/` is kept; delete it manually if you
+Uninstalling removes only symlinks created by this installer. Experiment state
+under `~/.gstack/projects/*/experiments/` is kept; delete it manually if you
 want it gone.
 
 ## GStack Office Hours Integration
@@ -327,7 +327,7 @@ want it gone.
 The companion works without modifying gstack, but the strongest default
 experience changes the Startup-mode Office Hours handoff.
 
-The optional patch makes Office Hours recommend `/validation-plan` for startup
+The optional patch makes Office Hours recommend `/experiment-plan` for startup
 ideas while retaining the existing planning recommendations for Builder mode.
 
 See:
@@ -350,5 +350,5 @@ npm run check
 npm test
 ```
 
-The tests cover validation gates, append-only experiment review, automation
+The tests cover experiment gates, append-only experiment review, automation
 unlocking, privacy-safe summaries, and the skill-chain routing contract.

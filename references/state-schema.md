@@ -1,7 +1,7 @@
-# Validation State Schema
+# Experiment State Schema
 
 All JSONL records are append-only and receive `id`, `ts`, and `project_slug`
-from `validation-state`.
+from `experiment-state`.
 
 ## Experiments
 
@@ -13,7 +13,7 @@ Status: `planned`, `active`, `completed`, `abandoned`.
 Optional review fields: `validity`, `validity_reason`, `result`,
 `next_action`, `rep_number`.
 
-Use `validation-state review <experiment-id> --json '<assessment>'` to append a
+Use `experiment-state review <experiment-id> --json '<assessment>'` to append a
 reviewed version without reconstructing the full experiment record.
 
 ## Evidence
@@ -32,7 +32,7 @@ the relationship and next action. Do not add contacts to gbrain or generic
 learnings.
 
 After a real repetition, assess whether the contact belongs in the founder's
-trusted validation circle. Use `validation-state review-contact <contact-id>
+trusted circle. Use `experiment-state review-contact <contact-id>
 --json '<assessment>'` to append a reviewed version of the contact.
 
 Required review fields:

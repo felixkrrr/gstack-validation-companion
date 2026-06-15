@@ -36,7 +36,7 @@ const VALUES = {
 const PRIVATE_KEY = /(email|phone|whatsapp|address|transcript|raw_quote|contact_details)/i;
 
 function die(message) {
-  console.error(`validation-state: ${message}`);
+  console.error(`experiment-state: ${message}`);
   process.exit(1);
 }
 
@@ -72,7 +72,7 @@ function gstackSlug() {
 }
 
 function slug() {
-  if (process.env.VALIDATION_PROJECT_SLUG) return sanitize(process.env.VALIDATION_PROJECT_SLUG);
+  if (process.env.EXPERIMENT_PROJECT_SLUG) return sanitize(process.env.EXPERIMENT_PROJECT_SLUG);
   const fromGstack = gstackSlug();
   if (fromGstack) return fromGstack;
   const url = git("remote", "get-url", "origin");
@@ -89,7 +89,7 @@ function sanitize(value) {
 
 const projectSlug = slug();
 const home = process.env.GSTACK_HOME || join(process.env.HOME, ".gstack");
-const stateDir = join(home, "projects", projectSlug, "validation");
+const stateDir = join(home, "projects", projectSlug, "experiments");
 
 function ensureState() {
   mkdirSync(stateDir, { recursive: true, mode: 0o700 });
@@ -101,7 +101,7 @@ function ensureState() {
   }
   const thesis = join(stateDir, "thesis.md");
   if (!existsSync(thesis)) {
-    writeFileSync(thesis, `# Validation Thesis\n\nProject: ${projectSlug}\n\n## Founder-Market Fit\n\n## Audience and Market Potential\n\n## Important Problem\n\n## Offer\n\n## Riskiest Assumption\n`, { mode: 0o600 });
+    writeFileSync(thesis, `# Experiment Thesis\n\nProject: ${projectSlug}\n\n## Founder-Market Fit\n\n## Audience and Market Potential\n\n## Important Problem\n\n## Offer\n\n## Riskiest Assumption\n`, { mode: 0o600 });
   }
   const distribution = join(stateDir, "distribution.md");
   if (!existsSync(distribution)) {
@@ -265,13 +265,13 @@ function summary(sanitized) {
 
 function help() {
   console.log(`Usage:
-  validation-state init
-  validation-state append <experiment|evidence|decision|contact> --json '<object>' [--force-with-rationale]
-  validation-state review <experiment-id> --json '<validity assessment>'
-  validation-state review-contact <contact-id> --json '<credibility assessment>'
-  validation-state list <experiment|evidence|decision|contact>
-  validation-state summary [--sanitized]
-  validation-state set-level <0|1|2|3> --rationale '<reason>'
+  experiment-state init
+  experiment-state append <experiment|evidence|decision|contact> --json '<object>' [--force-with-rationale]
+  experiment-state review <experiment-id> --json '<validity assessment>'
+  experiment-state review-contact <contact-id> --json '<credibility assessment>'
+  experiment-state list <experiment|evidence|decision|contact>
+  experiment-state summary [--sanitized]
+  experiment-state set-level <0|1|2|3> --rationale '<reason>'
 
 State: ${stateDir}`);
 }

@@ -9,11 +9,11 @@ index 8acfe1f3..6ff6709b 100644
 -After the plea, suggest the next step:
 +After the plea, suggest the next step based on the selected mode.
 +
-+**Startup mode:** recommend **`/validation-plan`** when GStack Validation
++**Startup mode:** recommend **`/experiment-plan`** when GStack Validation
 +Companion is installed. It converts this design into a falsifiable
 +business thesis and the cheapest credible founder-led experiment. Do not route
-+a startup idea directly into implementation planning before a validation
-+decision explicitly advances it. If `/validation-plan` is unavailable, point
++a startup idea directly into implementation planning before an experiment
++decision explicitly advances it. If `/experiment-plan` is unavailable, point
 +the founder to the design doc's real-world Assignment and recommend returning
 +with evidence.
 +

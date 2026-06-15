@@ -1,9 +1,9 @@
-# Validation Tactics
+# Experiment Tactics
 
 Choose the cheapest tactic that reaches the right people and tests the current
 uncertainty. Early work is founder-led.
 
-## Trusted Validation Circle
+## Trusted Circle
 
 Build durable relationships with a small number of credible ICP contacts who
 understand the workflow and will plainly say when an idea is bad, irrelevant,

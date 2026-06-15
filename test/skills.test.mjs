@@ -7,10 +7,10 @@ import { fileURLToPath } from "node:url";
 const root = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
-test("skill chain preserves validation-first routing", () => {
-  const plan = read("validation-plan/SKILL.md");
+test("skill chain preserves experiment-first routing", () => {
+  const plan = read("experiment-plan/SKILL.md");
   const reps = read("customer-reps/SKILL.md");
-  const review = read("validation-review/SKILL.md");
+  const review = read("experiment-review/SKILL.md");
   const distribution = read("distribution-loop/SKILL.md");
 
   assert.match(plan, /Prefer conversations when the buyer, workflow, or pain is unclear/);
@@ -24,13 +24,13 @@ test("skill chain preserves validation-first routing", () => {
 
 test("privacy contract keeps raw relationship data local", () => {
   const schema = read("references/state-schema.md");
-  const review = read("validation-review/SKILL.md");
+  const review = read("experiment-review/SKILL.md");
   assert.match(schema, /Contacts are local-only/);
   assert.match(review, /never include raw evidence\s+or contacts/);
 });
 
 test("generated skills match templates", () => {
-  for (const skill of ["validation-plan", "customer-reps", "validation-review", "distribution-loop"]) {
+  for (const skill of ["experiment-plan", "customer-reps", "experiment-review", "distribution-loop"]) {
     assert.match(read(`${skill}/SKILL.md`), /AUTO-GENERATED from SKILL.md.tmpl/);
   }
 });
@@ -43,7 +43,7 @@ test("all skills follow the shared gstack-style interaction protocol", () => {
   assert.match(protocol, /Last time the decision was/);
   assert.match(protocol, /exactly one explicit completion status/);
 
-  for (const skill of ["validation-plan", "customer-reps", "validation-review", "distribution-loop"]) {
+  for (const skill of ["experiment-plan", "customer-reps", "experiment-review", "distribution-loop"]) {
     const content = read(`${skill}/SKILL.md`);
     assert.match(content, /conversation-protocol\.md/);
     assert.match(content, /\*\*STOP/);
@@ -52,8 +52,8 @@ test("all skills follow the shared gstack-style interaction protocol", () => {
 });
 
 test("consequential writes require founder approval", () => {
-  const plan = read("validation-plan/SKILL.md");
-  const review = read("validation-review/SKILL.md");
+  const plan = read("experiment-plan/SKILL.md");
+  const review = read("experiment-review/SKILL.md");
   const distribution = read("distribution-loop/SKILL.md");
 
   assert.match(plan, /Do not update `thesis\.md`.*until the founder explicitly approves/s);
@@ -62,9 +62,9 @@ test("consequential writes require founder approval", () => {
 });
 
 test("skills preserve relationship continuity", () => {
-  const plan = read("validation-plan/SKILL.md");
+  const plan = read("experiment-plan/SKILL.md");
   const reps = read("customer-reps/SKILL.md");
-  const review = read("validation-review/SKILL.md");
+  const review = read("experiment-review/SKILL.md");
   const distribution = read("distribution-loop/SKILL.md");
 
   assert.match(plan, /Last time the decision was/);
@@ -73,9 +73,9 @@ test("skills preserve relationship continuity", () => {
   assert.match(distribution, /The strongest\s+signal so far was/);
 });
 
-test("skills build a credible validation circle without creating an echo chamber", () => {
+test("skills build a credible trusted circle without creating an echo chamber", () => {
   const reps = read("customer-reps/SKILL.md");
-  const review = read("validation-review/SKILL.md");
+  const review = read("experiment-review/SKILL.md");
   const tactics = read("references/tactics.md");
 
   assert.match(reps, /Credible returning contacts relevant to the changed hypothesis/);

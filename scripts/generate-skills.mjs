@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const check = process.argv.includes("--check");
-const skills = ["validation-plan", "customer-reps", "validation-review", "distribution-loop"];
+const skills = ["experiment-plan", "customer-reps", "experiment-review", "distribution-loop"];
 let stale = false;
 
 for (const skill of skills) {
