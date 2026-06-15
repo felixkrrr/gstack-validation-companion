@@ -274,8 +274,8 @@ The CLI prevents:
 Prerequisites:
 
 - [gstack](https://github.com/garrytan/gstack)
-- `buyable` (a separate gstack skill) for experiments where a minimal landing
-  page is the cheapest credible test
+- [`buyable`](https://github.com/felixkrrr/buyable) for experiments where a
+  minimal landing page is the cheapest credible test
 - Node.js
 
 Install the companion pack:
