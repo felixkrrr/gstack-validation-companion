@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { appendFileSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
+import { appendFileSync, chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,15 @@ const cli = join(root, "bin", "validation-state");
 
 function harness() {
   const dir = mkdtempSync(join(tmpdir(), "gstack-validation-companion-"));
-  const env = { ...process.env, GSTACK_HOME: join(dir, ".gstack"), VALIDATION_PROJECT_SLUG: "test-project" };
+  const env = {
+    ...process.env,
+    GSTACK_HOME: join(dir, ".gstack"),
+    VALIDATION_PROJECT_SLUG: "test-project",
+    // Isolate from any gstack-slug installed on the host machine.
+    GSTACK_ROOT: join(dir, "no-gstack-root"),
+    CLAUDE_CONFIG_DIR: join(dir, ".claude"),
+    CODEX_HOME: join(dir, ".codex"),
+  };
   const run = (...args) => execFileSync("node", [cli, ...args], { cwd: dir, env, encoding: "utf8" });
   const fail = (...args) => spawnSync("node", [cli, ...args], { cwd: dir, env, encoding: "utf8" });
   return { dir, env, run, fail };
@@ -203,6 +211,35 @@ test("sanitized summary never emits contacts or raw evidence", () => {
   assert.match(summary, /"evidence_records": 1/);
   assert.match(summary, /qualified buyer requested a follow-up/);
   assert.doesNotMatch(summary, /state_dir/);
+});
+
+test("slug defers to gstack-slug when available, for alignment with gstack's project storage", () => {
+  const { dir, env } = harness();
+  const gstackBin = join(dir, ".claude", "skills", "gstack", "bin");
+  mkdirSync(gstackBin, { recursive: true });
+  const slugScript = join(gstackBin, "gstack-slug");
+  writeFileSync(slugScript, "#!/usr/bin/env bash\necho 'SLUG=from-gstack-slug'\necho 'BRANCH=main'\n");
+  chmodSync(slugScript, 0o755);
+
+  const slugEnv = { ...env, CLAUDE_CONFIG_DIR: join(dir, ".claude") };
+  delete slugEnv.VALIDATION_PROJECT_SLUG;
+  const path = execFileSync("node", [cli, "init"], { env: slugEnv, encoding: "utf8" }).trim();
+  assert.match(path, /\/projects\/from-gstack-slug\/validation$/);
+});
+
+test("VALIDATION_PROJECT_SLUG overrides gstack-slug", () => {
+  const { dir, env } = harness();
+  const gstackBin = join(dir, ".claude", "skills", "gstack", "bin");
+  mkdirSync(gstackBin, { recursive: true });
+  const slugScript = join(gstackBin, "gstack-slug");
+  writeFileSync(slugScript, "#!/usr/bin/env bash\necho 'SLUG=from-gstack-slug'\n");
+  chmodSync(slugScript, 0o755);
+
+  const path = execFileSync("node", [cli, "init"], {
+    env: { ...env, CLAUDE_CONFIG_DIR: join(dir, ".claude") },
+    encoding: "utf8",
+  }).trim();
+  assert.match(path, new RegExp(`/projects/${env.VALIDATION_PROJECT_SLUG}/validation$`));
 });
 
 test("slug stays stable across subdirectories of a remote-less repository", () => {

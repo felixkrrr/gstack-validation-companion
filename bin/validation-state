@@ -48,8 +48,33 @@ function git(...args) {
   }
 }
 
+function gstackSlugBin() {
+  const home = process.env.HOME;
+  const candidates = [
+    process.env.GSTACK_ROOT && join(process.env.GSTACK_ROOT, "bin", "gstack-slug"),
+    join(process.env.GSTACK_HOME || join(home, ".gstack"), "repos", "gstack", "bin", "gstack-slug"),
+    join(process.env.CLAUDE_CONFIG_DIR || join(home, ".claude"), "skills", "gstack", "bin", "gstack-slug"),
+    join(process.env.CODEX_HOME || join(home, ".codex"), "skills", "gstack", "bin", "gstack-slug"),
+  ].filter(Boolean);
+  return candidates.find((candidate) => existsSync(candidate));
+}
+
+function gstackSlug() {
+  const bin = gstackSlugBin();
+  if (!bin) return null;
+  try {
+    const output = execFileSync(bin, [], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const match = output.match(/^SLUG=(.*)$/m);
+    return match ? sanitize(match[1]) || null : null;
+  } catch {
+    return null;
+  }
+}
+
 function slug() {
   if (process.env.VALIDATION_PROJECT_SLUG) return sanitize(process.env.VALIDATION_PROJECT_SLUG);
+  const fromGstack = gstackSlug();
+  if (fromGstack) return fromGstack;
   const url = git("remote", "get-url", "origin");
   const match = url.replace(/\.git$/, "").match(/[:/]([^/]+\/[^/]+)$/);
   if (match) return sanitize(match[1].replace("/", "-"));
